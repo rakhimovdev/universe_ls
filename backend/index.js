@@ -1,0 +1,25 @@
+const express = require("express");
+const app = express();
+const Student = require("./routes/Student");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Use extended: true for parsing URL-encoded bodies with complex objects
+
+app.use(cors());
+const url = "mongodb+srv://rahimovdev1:universe@cluster0.gwybjlk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongoose.connect(url)
+    .then(() => {
+        console.log("MongoDBga ulandi");
+    })
+    .catch((error) => {
+        console.error("mongoDBga ulanishda xatolik");
+    });
+
+app.use("/student", Student);
+
+const PORT = 5000;
+app.listen(PORT, () => {
+    console.log(`Server Port ${PORT}da ishlamoqda`);
+});
