@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Student = mongoose.model('Student', {
+const User = mongoose.model('User', {
     email: String,
     name: String,
     lastname: String,
@@ -8,4 +8,4 @@ const Student = mongoose.model('Student', {
     password: String,
 });
 
-module.exports = Student
+module.exports = User

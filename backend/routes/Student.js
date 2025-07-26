@@ -1,11 +1,11 @@
 const router = require('express').Router()
 const mongoose = require('mongoose');
-const User = require('../models/Student')
+const Student = require('../models/Student')
 
 
 router.get("/get", async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await Student.find();
         res.send(users);
     } catch (error) {
         res.status(500).send("Error retrieving cats");
@@ -32,7 +32,7 @@ router.delete("/delete/:id", async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
+        const user = await Student.findOne({ email });
 
         if (user) {
             console.log(`Foydalanuvchi kirish qildi: ${user.username}`);

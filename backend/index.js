@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const Student = require("./routes/Student");
+const User = require("./routes/User")
 const mongoose = require("mongoose");
 const cors = require("cors");
 
@@ -18,6 +19,7 @@ mongoose.connect(url)
     });
 
 app.use("/student", Student);
+app.use("/user", User);
 
 const PORT = 5000;
 app.listen(PORT, () => {
