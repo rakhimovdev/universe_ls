@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../../Api/Axios';
 import { Link } from 'react-router-dom';
+import './Sign_in.css';
 
 function Sign_in() {
     const [loginData, setLoginData] = useState({
@@ -10,7 +11,6 @@ function Sign_in() {
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
-
         try {
             const response = await axios.post('/user/login', loginData);
             console.log(response.data);
@@ -20,29 +20,41 @@ function Sign_in() {
     };
 
     return (
-        <div className='mt-[100px]'>
-            <h1 className='text-center'>Login</h1>
-            <form className='w-[400px] border-[2px] h-[200px] flex items-center justify-around flex-col m-auto ' onSubmit={handleLoginSubmit}>
-                <label>Username:</label>
-                <input
-                    className='w-[300px] h-[40px] text-black '
-                    type="text"
-                    value={loginData.username}
-                    placeholder='Username'
-                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-                />
-                <label>Password</label>
-                <input
-                    type="password"
-                    value={loginData.password}
-                    placeholder='Password'
-                    className='w-[300px] h-[40px] text-black '
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                />
-                <button>Log in1</button>
-                <Link to={'/'} >Login</Link>
-                <Link to={'/sign_up'} >Sign up</Link>
+        <div className="signin-page">
+            <h1 className="signin-title">Sign In</h1>
+
+            <form onSubmit={handleLoginSubmit} className="signin-form">
+                <div className="form-group">
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        placeholder="Enter username"
+                        value={loginData.username}
+                        onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        placeholder="Enter password"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="signin-button">Log In</button>
+
+                <p className="signup-link">
+                    Don't have an account?
+                    <Link to="/sign_up"></Link>
+                </p>
             </form>
+
+            <Link to="/" className="back-link">← Back to Home</Link>
         </div>
     );
 }

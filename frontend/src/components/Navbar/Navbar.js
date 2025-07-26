@@ -16,6 +16,7 @@ const Navbar = () => {
                     <ul>
                         <li>
                             <a href="/">Home</a>
+
                         </li>
                         <li>
                             <a href="#">Reading</a>
@@ -42,3 +43,7 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+// sign in 
