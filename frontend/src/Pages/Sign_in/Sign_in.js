@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from '../../Api/Axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Sign_in.css';
 
 function Sign_in() {
@@ -9,13 +9,28 @@ function Sign_in() {
         password: ''
     });
 
+    const navigate = useNavigate(); // navigate hook
+
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/user/login', loginData);
+            const response = await axios.post('/student/login', loginData);
+
+            // Backenddan token keldi deb faraz qilamiz
+            if (response.data.token) {
+                // Tokenni localStorage'ga saqlash
+                localStorage.setItem('token', response.data.token);
+
+                // Account/dashboard sahifasiga yo'naltirish
+                navigate('/account');
+            } else {
+                alert('Login muvaffaqiyatli, lekin token topilmadi!');
+            }
+
             console.log(response.data);
         } catch (error) {
             console.error(error);
+            alert('Login xato! Username yoki parol noto‘g‘ri.');
         }
     };
 
@@ -49,8 +64,7 @@ function Sign_in() {
                 <button type="submit" className="signin-button">Log In</button>
 
                 <p className="signup-link">
-                    Don't have an account?
-                    <Link to="/sign_up"></Link>
+                    Don't have an account? <Link to="/sign_up">Sign Up</Link>
                 </p>
             </form>
 

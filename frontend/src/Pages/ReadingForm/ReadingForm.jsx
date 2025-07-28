@@ -19,7 +19,7 @@ function ReadingForm() {
         const interval = setInterval(() => {
             setTime(new Date());
         }, 1000);
-        
+
         return () => clearInterval(interval);
     }, []);
 
@@ -42,7 +42,7 @@ function ReadingForm() {
                 {open && (
                     <div className="dropdown-menu">
                         <button className="menu-item">Enter Focus Mode</button>
-                        <Link to="/reading-tests" className="menu-item">All IELTS Reading Tests</Link>
+                        <Link to="/read" className="menu-item">All IELTS Reading Tests</Link>
                         <Link to="/" className="menu-item">Go to Homepage</Link>
                     </div>
                 )}

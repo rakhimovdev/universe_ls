@@ -19,7 +19,7 @@ const Navbar = () => {
 
                         </li>
                         <li>
-                            <a href="#">Reading</a>
+                            <a href="/read">Reading</a>
                         </li>
                         <li>
                             <a href="#">Listening</a>
@@ -29,10 +29,10 @@ const Navbar = () => {
                         </li>
                     </ul>
                     <div className="register">
-                        <a href="/sign_in">
+                        <a href="/select_in">
                             <button>Sign In</button>
                         </a>
-                        <a href="/sign_up">
+                        <a href="/select">
                             <button className="btn2">Sign Up</button>
                         </a>
                     </div>

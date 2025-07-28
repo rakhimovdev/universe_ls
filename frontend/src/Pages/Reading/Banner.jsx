@@ -83,7 +83,7 @@ function Banner() {
           {filteredTests.map(test => (
             <div className="cart" key={test.id}>
               <p>{test.title}</p>
-              <Link to="reading">
+              <Link to="/reading">
                 <button>Take_test</button>
               </Link>
             </div>

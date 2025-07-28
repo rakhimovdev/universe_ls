@@ -13,7 +13,7 @@ function Sign_up() {
     const handleSignUpSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/user/register', userData);
+            const response = await axios.post('/student/register', userData);
             console.log('Registered:', response.data);
         } catch (error) {
             console.error('Registration error:', error);

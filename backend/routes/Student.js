@@ -1,48 +1,78 @@
-const router = require('express').Router()
+const router = require('express').Router();
 const mongoose = require('mongoose');
-const Student = require('../models/Student')
+const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // JWT qo'shdik
 
-
-router.get("/get", async (req, res) => {
-    try {
-        const users = await Student.find();
-        res.send(users);
-    } catch (error) {
-        res.status(500).send("Error retrieving cats");
-    }
-})
-
+// Register route
 router.post('/register', async (req, res) => {
     try {
-        const { username, email } = req.body;
-        const newUser = new User({ username, email });
-        await newUser.save();
-        res.status(201).send('Foydalanuvchi muvaffaqiyatli qo\'shildi.');
+        const { email, name, lastname, username, password } = req.body;
+
+        // Parolni hash qilish
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = new User({
+            email,
+            name,
+            lastname,
+            username,
+            password: hashedPassword,
+        });
+
+        await user.save();
+
+        console.log('User registered successfully. ID:', user._id);
+
+        res.status(201).send(user);
     } catch (error) {
-        console.error('Xato yuz berdi:', error);
-        res.status(500).send('Serverda xato yuz berdi.');
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 });
 
-router.delete("/delete/:id", async (req, res) => {
-    const user = await User.findByIdAndDelete(req.params.id);
-    await res.send(`user deleted ${user.name}`)
-})
-
+// Login route (yangilangan)
 router.post('/login', async (req, res) => {
     try {
-        const { email } = req.body;
-        const user = await Student.findOne({ email });
+        const { username, password } = req.body;
 
-        if (user) {
-            console.log(`Foydalanuvchi kirish qildi: ${user.username}`);
-            res.status(200).send(`Xush kelibsiz, ${user.username}!`);
-        } else {
-            res.status(404).send('Foydalanuvchi topilmadi.');
+        // Foydalanuvchini username bo'yicha qidiramiz
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(404).send({ message: 'User not found or incorrect credentials' });
         }
+
+        // Parolni tekshirish
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).send({ message: 'Incorrect password' });
+        }
+
+        // JWT token yaratamiz
+        const token = jwt.sign(
+            { id: user._id, username: user.username },
+            'supersecretkey', // bu joyni .env da saqlash tavsiya qilinadi
+            { expiresIn: '1h' }
+        );
+
+        console.log('Login successful. User ID:', user._id);
+
+        // Token va foydalanuvchi ma'lumotlarini qaytarish
+        res.send({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
     } catch (error) {
-        console.error('Xato yuz berdi:', error);
-        res.status(500).send('Serverda xato yuz berdi.');
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 });
-module.exports = router
+
+module.exports = router;
