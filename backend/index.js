@@ -2,8 +2,10 @@ const express = require("express");
 const app = express();
 const Student = require("./routes/Student");
 const User = require("./routes/User")
+const Test = require("./routes/Test");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Use extended: true for parsing URL-encoded bodies with complex objects
@@ -20,6 +22,7 @@ mongoose.connect(url)
 
 app.use("/student", Student);
 app.use("/user", User);
+app.use("/test", Test);
 
 const PORT = 5000;
 app.listen(PORT, () => {

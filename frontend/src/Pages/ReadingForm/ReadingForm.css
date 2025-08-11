@@ -61,3 +61,19 @@
         }
     }
 }
+
+.contain {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reading_text {
+    width: 50%;
+}
+
+.test-content {
+    width: 50%;
+}

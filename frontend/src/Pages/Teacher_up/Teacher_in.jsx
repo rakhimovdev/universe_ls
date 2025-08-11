@@ -34,30 +34,34 @@ function Teacher_in() {
         }
     };
     return (
-        <div>
+        <div className='t_signin'>
             <h1 className="signin-title">Sign In</h1>
 
-            <form onSubmit={handleLoginSubmit} className="signin-form">
-                <div className="form-group">
-                    <label>Username</label>
+            <form onSubmit={handleLoginSubmit} className="tsignin-form">
+                <div className='t_login'>
                     <input
-                        type="text"
-                        placeholder="Enter username"
-                        value={loginData.username}
-                        onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                         required
+                        name="name"
+                        className="inputName"
+                        type={"text"}
+                        onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                     />
+                    <label htmlFor="name" className="nameLabel">
+                        User Name
+                    </label>
                 </div>
 
-                <div className="form-group">
-                    <label>Password</label>
+                <div className='t_login'>
                     <input
-                        type="password"
-                        placeholder="Enter password"
+                        className="inputName"
+                        type={"password"}
                         value={loginData.password}
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                         required
                     />
+                    <label htmlFor="password" className="nameLabel">
+                        Password
+                    </label>
                 </div>
 
                 <button type="submit" className="signin-button">Log In</button>
@@ -66,8 +70,9 @@ function Teacher_in() {
                     Don't have an account? <Link to="/sign_up">Sign Up</Link>
                 </p>
             </form>
-
-            <Link to="/" className="back-link">← Back to Home</Link>
+            <h1 className="back-link">
+                <Link to="/" >← Back to Home</Link>
+            </h1>
         </div>
     )
 }

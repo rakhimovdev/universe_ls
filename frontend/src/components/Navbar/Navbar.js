@@ -1,8 +1,15 @@
-import React, { useState } from "react";
-import "./Navbar.css"
+import React from "react";
+import "./Navbar.css";
 
 const Navbar = () => {
+    // Agar token localStorage'da bo'lsa, foydalanuvchi login bo'lgan deb hisoblanadi
+    const isLoggedIn = !!localStorage.getItem('token');
 
+    // Logout handler
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    };
 
     return (
         <div className="">
@@ -16,7 +23,6 @@ const Navbar = () => {
                     <ul>
                         <li>
                             <a href="/">Home</a>
-
                         </li>
                         <li>
                             <a href="/read">Reading</a>
@@ -29,12 +35,25 @@ const Navbar = () => {
                         </li>
                     </ul>
                     <div className="register">
-                        <a href="/select_in">
-                            <button>Sign In</button>
-                        </a>
-                        <a href="/select">
-                            <button className="btn2">Sign Up</button>
-                        </a>
+                        {!isLoggedIn ? (
+                            <>
+                                <a href="/select_in">
+                                    <button>Sign In</button>
+                                </a>
+                                <a href="/select">
+                                    <button className="btn2">Sign Up</button>
+                                </a>
+                            </>
+                        ) : (
+                            <>
+                                <a href="/account">
+                                    <button>Account</button>
+                                </a>
+                                <button onClick={handleLogout} style={{ marginLeft: 10 }}>
+                                    Logout
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -46,4 +65,4 @@ export default Navbar;
 
 
 
-// sign in 
+// sign in
