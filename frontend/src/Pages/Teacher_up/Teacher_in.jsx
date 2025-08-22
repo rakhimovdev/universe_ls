@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react';
 import "./Teacher_in.css";
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../Api/Axios';
+
 function Teacher_in() {
     const [loginData, setLoginData] = useState({
         username: '',
@@ -21,7 +21,10 @@ function Teacher_in() {
                 // Tokenni localStorage'ga saqlash
                 localStorage.setItem('token', response.data.token);
 
-                // Account/dashboard sahifasiga yo'naltirish
+                // Teacher sifatida belgilash
+                localStorage.setItem('role', 'teacher');
+
+                // Teacher account sahifasiga yo'naltirish
                 navigate('/teachacc');
             } else {
                 alert('Login muvaffaqiyatli, lekin token topilmadi!');
@@ -33,20 +36,22 @@ function Teacher_in() {
             alert('Login xato! Username yoki parol noto‘g‘ri.');
         }
     };
+
     return (
         <div className='t_signin'>
-            <h1 className="signin-title">Sign In</h1>
+            <h1 className="signin-title">Teacher Sign In</h1>
 
             <form onSubmit={handleLoginSubmit} className="tsignin-form">
                 <div className='t_login'>
                     <input
                         required
-                        name="name"
+                        name="username"
                         className="inputName"
-                        type={"text"}
+                        type="text"
+                        value={loginData.username}
                         onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                     />
-                    <label htmlFor="name" className="nameLabel">
+                    <label htmlFor="username" className="nameLabel">
                         User Name
                     </label>
                 </div>
@@ -54,7 +59,7 @@ function Teacher_in() {
                 <div className='t_login'>
                     <input
                         className="inputName"
-                        type={"password"}
+                        type="password"
                         value={loginData.password}
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                         required
@@ -70,11 +75,12 @@ function Teacher_in() {
                     Don't have an account? <Link to="/sign_up">Sign Up</Link>
                 </p>
             </form>
+
             <h1 className="back-link">
-                <Link to="/" >← Back to Home</Link>
+                <Link to="/">← Back to Home</Link>
             </h1>
         </div>
-    )
+    );
 }
 
-export default Teacher_in
+export default Teacher_in;

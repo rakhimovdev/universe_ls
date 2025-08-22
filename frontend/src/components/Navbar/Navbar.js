@@ -2,17 +2,20 @@ import React from "react";
 import "./Navbar.css";
 
 const Navbar = () => {
-    // Agar token localStorage'da bo'lsa, foydalanuvchi login bo'lgan deb hisoblanadi
-    const isLoggedIn = !!localStorage.getItem('token');
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    const isLoggedIn = !!token;
 
     // Logout handler
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        window.location.href = '/';
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("user");
+        window.location.href = "/";
     };
 
     return (
-        <div className="">
+        <div>
             <nav>
                 <div className="in_nav">
                     <a href="/">
@@ -20,49 +23,69 @@ const Navbar = () => {
                             <h1>Logo</h1>
                         </div>
                     </a>
+
+                    {/* Student uchun menyular */}
                     <ul>
-                        <li>
-                            <a href="/">Home</a>
-                        </li>
-                        <li>
-                            <a href="/read">Reading</a>
-                        </li>
-                        <li>
-                            <a href="#">Listening</a>
-                        </li>
-                        <li>
-                            <a href="#">About Us</a>
-                        </li>
+                        {role !== "teacher" && (
+                            <>
+                                <li>
+                                    <a href="/">Home</a>
+                                </li>
+                                <li>
+                                    <a href="/read">Reading</a>
+                                </li>
+                                <li>
+                                    <a href="#">Listening</a>
+                                </li>
+                                <li>
+                                    <a href="#">About Us</a>
+                                </li>
+                            </>
+                        )}
                     </ul>
+
                     <div className="register">
                         {!isLoggedIn ? (
                             <>
-                                <a href="/select_in">
-                                    <button>Sign In</button>
-                                </a>
-                                <a href="/select">
-                                    <button className="btn2">Sign Up</button>
-                                </a>
+                                {/* 🔥 Agar teacher bo‘lsa Sign In / Sign Up chiqmaydi */}
+                                {role !== "teacher" && (
+                                    <>
+                                        <a href="/sign_in">
+                                            <button>Sign In</button>
+                                        </a>
+                                        <a href="/sign_up">
+                                            <button className="btn2">Sign Up</button>
+                                        </a>
+                                    </>
+                                )}
                             </>
                         ) : (
                             <>
-                                <a href="/account">
-                                    <button>Account</button>
-                                </a>
-                                <button onClick={handleLogout} style={{ marginLeft: 10 }}>
+                                <button onClick={handleLogout}>
                                     Logout
                                 </button>
+                                <a href={role === "teacher" ? "/teachacc" : "/account"}>
+                                    <button>Account</button>
+                                </a>
+
+                                {/* Teacher uchun maxsus tugmalar */}
+                                {role === "teacher" && (
+                                    <>
+                                        <a href="/solving">
+                                            <button>Add Test</button>
+                                        </a>
+                                        <a href="/students">
+                                            <button className="btn2">Your Students</button>
+                                        </a>
+                                    </>
+                                )}
                             </>
                         )}
                     </div>
                 </div>
             </nav>
-        </div >
+        </div>
     );
 };
 
 export default Navbar;
-
-
-
-// sign in

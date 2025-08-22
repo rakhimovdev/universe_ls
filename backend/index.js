@@ -5,6 +5,7 @@ const User = require("./routes/User")
 const Test = require("./routes/Test");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const Score = require("./routes/Score");
 
 
 app.use(express.json());
@@ -23,6 +24,7 @@ mongoose.connect(url)
 app.use("/student", Student);
 app.use("/user", User);
 app.use("/test", Test);
+app.use("/score", Score);
 
 const PORT = 5000;
 app.listen(PORT, () => {

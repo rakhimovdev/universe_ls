@@ -7,7 +7,7 @@ function Select_in() {
             <div className="select-container">
                 <h1>Are You </h1>
                 <div className="box">
-                    <Link to="/techer_in">
+                    <Link to="/teacher_in">
 
                         <button>Teacher</button>
                     </Link>

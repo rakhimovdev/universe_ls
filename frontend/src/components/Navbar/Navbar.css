@@ -26,18 +26,40 @@ ul {
 
 li {
     list-style-type: none;
+    position: relative;
 }
 
 a {
     text-decoration: none;
     color: var(--text-color-3);
+    font-size: 16px;
+    font-weight: 500;
+    position: relative;
+    padding: 5px 0;
+}
+
+/* 🔥 Hover chiziq animatsiyasi */
+a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+a:hover::after {
+    width: 100%;
 }
 
 .register {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 200px;
+    width: 300px;
+    gap: 10px;
 }
 
 .register button {
@@ -48,6 +70,15 @@ a {
     border-radius: 5px;
     background-color: var(--secondary-color);
     color: var(--text-color);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+/* 🔥 Hover effekti tugmalar uchun */
+.register button:hover {
+    /* transform: translateY(-2px); */
+    background-color: var(--primary-color);
+    border-bottom: 3px solid red;
 }
 
 .register .btn2 {

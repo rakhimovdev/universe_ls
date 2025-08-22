@@ -7,28 +7,32 @@ import axios from "../../Api/Axios";
 function ReadingForm() {
     const { testId } = useParams();
     const [open, setOpen] = useState(false);
-    const [time, setTime] = useState(new Date());
     const [test, setTest] = useState(null);
     const [userAnswers, setUserAnswers] = useState([]);
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
-    const [longAnswer, setLongAnswer] = useState("");
+    const [data, setData] = useState([]);
+
+    // Timer (20 minut = 1200 sekund)
+    const [secondsLeft, setSecondsLeft] = useState(1200);
 
     // Dropdownni ochib yopish
     const toggleDropdown = () => setOpen(!open);
 
-    // Timer
+    // Barcha testlarni olish (reading text uchun)
     useEffect(() => {
-        const interval = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(interval);
+        const getApi = async () => {
+            try {
+                const res = await axios.get(`/test/all`);
+                setData(res.data);
+            } catch {
+                console.error("xato");
+            }
+        }
+        getApi();
     }, []);
 
-    const formatTime = (num) => num.toString().padStart(2, '0');
-    const hours = formatTime(time.getHours());
-    const minutes = formatTime(time.getMinutes());
-    const seconds = formatTime(time.getSeconds());
-
-    // Fetch test by ID
+    // Bitta testni ID bo‘yicha olish
     useEffect(() => {
         axios.get(`/test/${testId}`)
             .then(res => {
@@ -37,7 +41,7 @@ function ReadingForm() {
                     return;
                 }
                 setTest(res.data);
-                const answerCount = res.data.questions?.length || 0;
+                const answerCount = (res.data.testText.match(/\[\[(input|select)\]\]/g) || []).length;
                 setUserAnswers(Array(answerCount).fill(""));
             })
             .catch(err => {
@@ -46,40 +50,92 @@ function ReadingForm() {
             });
     }, [testId]);
 
-    // Input o'zgarganda userAnswers ni yangilash
+    // Timer ishlashi
+    useEffect(() => {
+        if (results) return; // agar tekshirilgan bo‘lsa timer to‘xtaydi
+
+        if (secondsLeft <= 0) {
+            handleSubmit();
+            return;
+        }
+
+        const timerId = setInterval(() => {
+            setSecondsLeft(prev => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timerId);
+    }, [secondsLeft, results]);
+
+    // Vaqt formatlash
+    const formatTime = (sec) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    // Javoblar o‘zgarishi
     const handleChange = (val, index) => {
         const updated = [...userAnswers];
         updated[index] = val;
         setUserAnswers(updated);
     };
 
-    // Javoblarni tekshirish
-    const handleSubmit = () => {
+    // Javoblarni tekshirish va score saqlash
+    const handleSubmit = async () => {
         if (!test?.questions) return;
+
         const check = userAnswers.map((ans, idx) => {
             const correct = test.questions[idx]?.value?.trim().toLowerCase() || "";
             return ans.trim().toLowerCase() === correct;
         });
+
         setResults(check);
+
+        // ✅ Score hisoblash
+        const score = check.filter(r => r).length;
+
+        try {
+            await axios.post(
+                "/score/add",
+                {
+                    testId: test._id,
+                    score
+                },
+                {
+                    headers: {
+                        Authorization: localStorage.getItem("token")
+                    }
+                }
+            );
+            console.log("Score saqlandi ✅");
+        } catch (err) {
+            console.error("Score saqlashda xato:", err);
+        }
     };
 
-    // Agar xato bo'lsa
     if (error) return <p style={{ color: "red" }}>{error}</p>;
-
-    // Yuklanish holati
     if (!test) return <p>Loading test...</p>;
 
-    // split() xatosini oldini olish
-    const parts = test?.testText ? test.testText.split(/\[\[input\]\]/g) : [];
+    // testText parsing
+    const regex = /\[\[(input|select)\]\]/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    const inputTypes = [];
+
+    while ((match = regex.exec(test.testText)) !== null) {
+        parts.push(test.testText.substring(lastIndex, match.index));
+        inputTypes.push(match[1]);
+        lastIndex = regex.lastIndex;
+    }
+    parts.push(test.testText.substring(lastIndex));
 
     return (
         <div className='readingform'>
             <header>
                 <h1>{test.name || "Test"}</h1>
-                <h1><FaClock /> {`${hours}:${minutes}:${seconds}`}</h1>
-                <div className="bar-icon" onClick={toggleDropdown}>
-                    &#9776;
-                </div>
+                <h1><FaClock /> {formatTime(secondsLeft)}</h1>
+                <div className="bar-icon" onClick={toggleDropdown}>&#9776;</div>
                 {open && (
                     <div className="dropdown-menu">
                         <button className="menu-item">Enter Focus Mode</button>
@@ -90,63 +146,68 @@ function ReadingForm() {
             </header>
             <div className="contain">
                 <div className="reading_text">
-                    {test.questions.map((q, index) => (
-                        <div key={index} style={{ marginBottom: '20px' }}>
-                            <p>{q.readingText}</p>
-                        </div>
-                    ))}
-
+                    {data.length > 0 ? (
+                        <p>
+                            {data[0].readingText || "Reading matni mavjud emas"}
+                        </p>
+                    ) : (
+                        <p style={{ color: "orange" }}>Reading matni mavjud emas</p>
+                    )}
                 </div>
-            </div>
-            <div className="test-content">
-                <h2>{test.name || "Test"}</h2>
-                {parts.length > 0 ? (
-                    <p style={{ fontSize: "18px" }}>
-                        {parts.map((part, i) => (
-                            <React.Fragment key={i}>
-                                {part}
-                                {i < userAnswers.length && (
-                                    <>
+                <div className="test-content" style={{ fontSize: "18px" }}>
+                    {parts.map((part, i) => (
+                        <div key={i} style={{ marginBottom: "8px" }}>
+                            {part}
+                            {i < inputTypes.length && (
+                                <>
+                                    {inputTypes[i] === "input" ? (
                                         <input
                                             type="text"
-                                            value={userAnswers[i]}
+                                            value={userAnswers[i] || ""}
                                             onChange={(e) => handleChange(e.target.value, i)}
                                             style={{ margin: "0 5px", padding: "3px" }}
                                             disabled={!!results}
                                         />
-                                        {results && (
-                                            <span style={{ color: results[i] ? "green" : "red", marginLeft: 5 }}>
-                                                {results[i] ? "✔️" : "❌"}
-                                            </span>
-                                        )}
-                                    </>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </p>
-                ) : (
-                    <p style={{ color: "orange" }}>Test matni mavjud emas</p>
-                )}
-
-                <button
-                    onClick={handleSubmit}
-                    style={{ background: "blue", color: "white", padding: "10px", marginTop: "20px" }}
-                    disabled={!!results}
-                >
-                    Check the answers
-                </button>
-                {results && (
-                    <div style={{ marginTop: 20 }}>
-                        <strong>
-                            {results.every(r => r)
-                                ? "Barcha javoblar to'g'ri!"
-                                : "Ba'zi javoblar noto'g'ri, qayta urinib ko'ring."}
-                        </strong>
-                        <div style={{ marginTop: 10 }}>
-                            To‘g‘ri javoblar soni: {results.filter(r => r).length} / {results.length}
+                                    ) : (
+                                        <select
+                                            value={userAnswers[i] || ""}
+                                            onChange={(e) => handleChange(e.target.value, i)}
+                                            style={{ margin: "0 5px", padding: "3px" }}
+                                            disabled={!!results}
+                                        >
+                                            <option value="">-- Tanlang --</option>
+                                            <option value="true">True</option>
+                                            <option value="false">False</option>
+                                            <option value="not given">Not Given</option>
+                                        </select>
+                                    )}
+                                    {results && (
+                                        <span style={{ color: results[i] ? "green" : "red", marginLeft: 5 }}>
+                                            {results[i] ? "✔️" : "❌"}
+                                        </span>
+                                    )}
+                                </>
+                            )}
                         </div>
+                    ))}
+                    <div>
+                        <button
+                            onClick={handleSubmit}
+                            style={{ background: "blue", color: "white", padding: "10px", marginTop: "20px" }}
+                            disabled={!!results}
+                        >
+                            Check the answers
+                        </button>
                     </div>
-                )}
+
+                    {results && (
+                        <div style={{ marginTop: 20 }}>
+                            <strong>
+                                To‘g‘ri javoblar soni: {results.filter(r => r).length} / {results.length}
+                            </strong>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

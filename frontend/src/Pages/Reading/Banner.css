@@ -129,6 +129,7 @@
 
 .banner .right .box .cart {
     width: 250px;
+    height: 100px;
     min-height: 140px;
     display: flex;
     flex-direction: column;

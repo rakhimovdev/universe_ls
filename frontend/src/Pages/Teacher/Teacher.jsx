@@ -6,31 +6,54 @@ import axios from '../../Api/Axios';
 function Teacher() {
     const [userData, setUserData] = useState({
         username: '',
+        name: '',
+        lastname: '',
         email: '',
-        password: ''
+        password: '',
+        role: 'teacher' // 🔥 faqat teacher sifatida yuboriladi
     });
 
-    const navigate = useNavigate(); // navigate hook
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const navigate = useNavigate();
 
     const handleSignUpSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setErrorMsg('');
+
+        if (userData.password.length < 6) {
+            setErrorMsg("Password must be at least 6 characters long ❌");
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await axios.post('/user/register', userData);
-            console.log('Registered:', response.data);
 
-            // Muvaffaqiyatli ro'yxatdan o'tgan bo'lsa
-            navigate('/teachacc'); // teachacc sahifasiga yo'naltirish
+            if (response.data.token) {
+                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("role", "teacher"); // 🔥 teacher sifatida saqlaymiz
+                localStorage.setItem("user", JSON.stringify(response.data.user));
+            }
+
+            alert("Teacher account created successfully! 🎉");
+            navigate('/teachacc'); // teacher account sahifaga yo‘naltirish
         } catch (error) {
             console.error('Registration error:', error);
-            alert('Ro\'yxatdan o\'tishda xatolik yuz berdi!');
+            setErrorMsg(error.response?.data?.message || "Ro'yxatdan o'tishda xatolik yuz berdi ❌");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div>
-            <h1 className="signup-title">Sign Up</h1>
+        <div className="signup-page">
+            <h1 className="signup-title">Teacher Sign Up</h1>
 
             <form onSubmit={handleSignUpSubmit} className="signup-form">
+                {errorMsg && <p className="error-message">{errorMsg}</p>}
+
                 <div className="form-group">
                     <label>Username</label>
                     <input
@@ -38,6 +61,26 @@ function Teacher() {
                         placeholder="Enter username"
                         value={userData.username}
                         onChange={(e) => setUserData({ ...userData, username: e.target.value })}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        placeholder="Enter name"
+                        value={userData.name}
+                        onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Lastname</label>
+                    <input
+                        type="text"
+                        placeholder="Enter Lastname"
+                        value={userData.lastname}
+                        onChange={(e) => setUserData({ ...userData, lastname: e.target.value })}
                         required
                     />
                 </div>
@@ -64,7 +107,9 @@ function Teacher() {
                     />
                 </div>
 
-                <button type="submit" className="signup-button">Register</button>
+                <button type="submit" className="signup-button" disabled={loading}>
+                    {loading ? "Registering..." : "Register"}
+                </button>
 
                 <p className="signin-link">
                     Already have an account?
