@@ -26,25 +26,21 @@ const Navbar = () => {
 
                     {/* Student uchun menyular */}
                     <ul>
-                        {role !== "teacher" && (
-                            <>
-                                <li>
-                                    <a href="/">Home</a>
-                                </li>
-                                <li>
-                                    <a href="/read">Reading</a>
-                                </li>
-                                <li>
-                                    <a href="#">Listening</a>
-                                </li>
-                                <li>
-                                    <a href="#">About Us</a>
-                                </li>
-                            </>
-                        )}
+                        <li>
+                            <a href="/">Home</a>
+                        </li>
+                        <li>
+                            <a href="/read">Reading</a>
+                        </li>
+                        <li>
+                            <a href="#">Listening</a>
+                        </li>
+                        <li>
+                            <a href="#">About Us</a>
+                        </li>
                     </ul>
 
-                    <div className="register">
+                    <div className="    ">
                         {!isLoggedIn ? (
                             <>
                                 {/* 🔥 Agar teacher bo‘lsa Sign In / Sign Up chiqmaydi */}
@@ -60,7 +56,7 @@ const Navbar = () => {
                                 )}
                             </>
                         ) : (
-                            <>
+                            <div className="logged-in">
                                 <button onClick={handleLogout}>
                                     Logout
                                 </button>
@@ -71,7 +67,7 @@ const Navbar = () => {
                                 {/* Teacher uchun maxsus tugmalar */}
                                 {role === "teacher" && (
                                     <>
-                                        <a href="/solving">
+                                        <a href="/selectt">
                                             <button>Add Test</button>
                                         </a>
                                         <a href="/students">
@@ -79,7 +75,7 @@ const Navbar = () => {
                                         </a>
                                     </>
                                 )}
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>

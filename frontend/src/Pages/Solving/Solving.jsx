@@ -5,12 +5,12 @@ import "./Solving.css";
 function FillInTheBlankTest() {
     const [testName, setTestName] = useState("");
     const [testText, setTestText] = useState(
-        "2 + 2 = [[input]]\nBu gap rostmi? [[select]]\nYoki: [[input:text]]"
+        "2 + 2 = [[input]]\nBu gap rostmi? [[select]]\nYoki: [[input:text]]\nHa/Yo‘q savol: [[select:yn]]"
     );
-    const [answers, setAnswers] = useState([]); // [{ value: string, type: string }]
+    const [answers, setAnswers] = useState([]);
     const [readingText, setReadingText] = useState("");
 
-    // Test ma'lumotlarini olish
+    // ✅ Serverdan oxirgi testni olish
     useEffect(() => {
         axios
             .get("/user/tests/last")
@@ -24,6 +24,7 @@ function FillInTheBlankTest() {
                         d.questions.map((q) => ({
                             value: q.value || "",
                             type: q.type || "text",
+                            rawType: q.type || "text",
                         }))
                     );
                 }
@@ -31,34 +32,34 @@ function FillInTheBlankTest() {
             .catch(() => { });
     }, []);
 
-    // [[input]], [[select]], [[input:type]] larni aniqlash uchun regex
-    // match[0] = to‘liq [[...]]
-    // match[1] = input, input:type yoki select
-    // match[2] = type (agar input:type bo‘lsa)
-    const inputMatches = [...testText.matchAll(/\[\[(input(?::(\w+))?|select)\]\]/g)];
+    // [[input]], [[select]], [[input:type]], [[select:yn]] larni topish
+    const inputMatches = [...testText.matchAll(/\[\[(input(?::(\w+))?|select(?::yn)?)\]\]/g)];
     const inputCount = inputMatches.length;
 
-    // answers massivini inputlar soniga moslashtirish
+    // ✅ answers massivini inputlarga moslashtirish
     useEffect(() => {
         setAnswers((prev) => {
             const arr = [...prev];
             while (arr.length < inputCount) {
                 const match = inputMatches[arr.length];
                 let type = "text";
+                let rawType = "text";
 
                 if (match[1].startsWith("input")) {
                     type = match[2] || "text";
-                } else if (match[1] === "select") {
-                    type = "select";
+                    rawType = "input:" + (match[2] || "text");
+                } else if (match[1].startsWith("select")) {
+                    type = "select";       // backend faqat "select" ko‘radi
+                    rawType = match[1];    // "select" yoki "select:yn"
                 }
 
-                arr.push({ value: "", type });
+                arr.push({ value: "", type, rawType });
             }
             return arr.slice(0, inputCount);
         });
     }, [testText, inputCount]);
 
-    // Javob o'zgarganda
+    // ✅ Javob o‘zgarishi
     const handleAnswerChange = (idx, value) => {
         setAnswers((prev) => {
             const arr = [...prev];
@@ -67,10 +68,16 @@ function FillInTheBlankTest() {
         });
     };
 
-    // Test matnini inputlarga bo‘lib render qilish
+    // ✅ Tozalash tugmasi
+    const handleClearInputs = () => {
+        setTestName("");
+        setReadingText("");
+        setTestText("");
+    };
+
+    // ✅ Savolni inputlar bilan render qilish
     const renderQuestion = () => {
-        // testText ni inputlar bo‘yicha bo‘lamiz
-        const parts = testText.split(/\[\[(?:input(?::\w+)?|select)\]\]/g);
+        const parts = testText.split(/\[\[(?:input(?::\w+)?|select(?::yn)?)\]\]/g);
         const elements = [];
 
         for (let i = 0; i < parts.length; i++) {
@@ -78,10 +85,14 @@ function FillInTheBlankTest() {
             if (i < inputCount) {
                 const match = inputMatches[i];
                 let type = "text";
+                let rawType = "text";
+
                 if (match[1].startsWith("input")) {
                     type = match[2] || "text";
-                } else if (match[1] === "select") {
+                    rawType = "input:" + (match[2] || "text");
+                } else if (match[1].startsWith("select")) {
                     type = "select";
+                    rawType = match[1];
                 }
 
                 if (type === "text") {
@@ -96,31 +107,37 @@ function FillInTheBlankTest() {
                         />
                     );
                 } else if (type === "select") {
-                    elements.push(
-                        <select
-                            key={`input-select-${i}`}
-                            value={answers[i]?.value || ""}
-                            onChange={(e) => handleAnswerChange(i, e.target.value)}
-                            className="choice-select"
-                        >
-                            <option value="">-- Tanlang --</option>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                            <option value="not given">Not Given</option>
-                        </select>
-                    );
-                } else {
-                    // default input (agar boshqa type bo‘lsa)
-                    elements.push(
-                        <input
-                            key={`input-other-${i}`}
-                            type="text"
-                            className="blank-input"
-                            value={answers[i]?.value || ""}
-                            onChange={(e) => handleAnswerChange(i, e.target.value)}
-                            placeholder="Javob"
-                        />
-                    );
+                    if (rawType === "select:yn") {
+                        // ✅ Yes / No / Not Given
+                        elements.push(
+                            <select
+                                key={`input-select-yn-${i}`}
+                                value={answers[i]?.value || ""}
+                                onChange={(e) => handleAnswerChange(i, e.target.value)}
+                                className="choice-select"
+                            >
+                                <option value="">-- Tanlang --</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                                <option value="not given">Not Given</option>
+                            </select>
+                        );
+                    } else {
+                        // ✅ True / False / Not Given
+                        elements.push(
+                            <select
+                                key={`input-select-${i}`}
+                                value={answers[i]?.value || ""}
+                                onChange={(e) => handleAnswerChange(i, e.target.value)}
+                                className="choice-select"
+                            >
+                                <option value="">-- Tanlang --</option>
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                                <option value="not given">Not Given</option>
+                            </select>
+                        );
+                    }
                 }
             }
         }
@@ -128,7 +145,7 @@ function FillInTheBlankTest() {
         return elements;
     };
 
-    // Test va javoblarni serverga yuborish
+    // ✅ Testni serverga yuborish
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -138,7 +155,7 @@ function FillInTheBlankTest() {
                 questions: answers.map((ans, idx) => ({
                     id: idx + 1,
                     value: ans.value,
-                    type: ans.type,
+                    type: ans.type, // faqat "text" yoki "select" boradi
                 })),
                 readingText,
             });
@@ -183,16 +200,25 @@ function FillInTheBlankTest() {
                 rows={5}
                 value={testText}
                 onChange={(e) => setTestText(e.target.value)}
-                placeholder="Savolingizni yozing va [[input]] yoki [[select]] joyiga javob uchun maydon qo‘shing"
+                placeholder="Savolingizni yozing va [[input]] yoki [[select]], [[select:yn]] joyiga javob uchun maydon qo‘shing"
                 style={{ width: "100%", marginBottom: "10px", padding: "8px", fontSize: "16px" }}
             />
 
             <div className="question-preview" style={{ whiteSpace: "pre-wrap" }}>
                 <strong>Ko‘rinishi:</strong>
-                <div style={{ marginTop: "1rem" }}>{renderQuestion()}</div>
+                <div className="view" style={{ marginTop: "1rem" }}>{renderQuestion()}</div>
             </div>
 
             <form onSubmit={handleSubmit}>
+                <button
+                    type="button"
+                    onClick={handleClearInputs}
+                    className="clear-btn"
+                    style={{ marginTop: 12, marginRight: 10 }}
+                >
+                    Tozalash
+                </button>
+
                 <button type="submit" className="upload-btn" style={{ marginTop: 12 }}>
                     Yuborish
                 </button>

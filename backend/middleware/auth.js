@@ -9,12 +9,13 @@ function authMiddleware(req, res, next) {
 
     const token = authHeader.split(" ")[1];
     try {
+        // token ichida { id: user._id } saqlanadi
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
+        req.user = decoded; // { id: ... }
         next();
     } catch (err) {
         return res.status(401).json({ message: "Noto‘g‘ri token" });
     }
 }
 
-module.exports = authMiddleware; // 🔴 export qilish shart
+module.exports = authMiddleware;

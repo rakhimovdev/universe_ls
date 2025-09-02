@@ -1,49 +1,80 @@
-import axios from "axios";
+import axios from "../../Api/Axios";
 import { useEffect, useState } from "react";
+import "./Students.css"; // 👉 CSS alohida faylga chaqirilgan
 
 function Students() {
-    const [students, setStudents] = useState([]);
-    const [data, setData] = useState({});
-    console.log(data)
+    const [data, setData] = useState([]);
+    const token = localStorage.getItem("token");
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        axios.get("http://localhost:5000/student/results", {
+    // 📌 Barcha scorelarni olish
+    const fetchScores = () => {
+        axios.get("/score/all", {
             headers: { Authorization: `Bearer ${token}` },
         })
-            .then((res) => setStudents(res.data))
+            .then((res) => setData(res.data))
             .catch((err) => console.error(err.response?.data || err.message));
+    };
+
+    // 📌 Score o‘chirish
+    const deleteScore = async (id) => {
+        if (!window.confirm("Rostdan ham o‘chirmoqchimisiz?")) return;
+
+        try {
+            await axios.delete(`/score/delete/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            // O‘chirilgandan keyin listni yangilash
+            setData(data.filter((s) => s._id !== id));
+        } catch (err) {
+            console.error(err.response?.data || err.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchScores();
     }, []);
 
     return (
-        <div>
-            <h1>Student Scores</h1>
-            {students.length > 0 ? (
-                <table border="1" cellPadding="10">
+        <div className="students-container">
+            <h1 className="title">📊 Student Scores</h1>
+
+            {data.length > 0 ? (
+                <table className="students-table">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Lastname</th>
                             <th>Email</th>
                             <th>Test</th>
                             <th>Score</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map((student, index) => (
-                            <tr key={index}>
+                        {data.map((student, index) => (
+                            <tr key={student._id}>
                                 <td>{index + 1}</td>
-                                <td>{student.student?.username || "N/A"}</td>
+                                <td>{student.student?.name || "N/A"}</td>
+                                <td>{student.student?.lastname || "N/A"}</td>
                                 <td>{student.student?.email || "N/A"}</td>
-                                <td>{student.test}</td>
+                                <td>{student.test?.name || "N/A"}</td>
                                 <td>{student.score}</td>
+                                <td>
+
+                                    <button
+                                        className="delete-btn1"
+                                        onClick={() => deleteScore(student._id)}>
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             ) : (
-                <p>Loading...</p>
+                <p className="loading">Loading...</p>
             )}
         </div>
     );

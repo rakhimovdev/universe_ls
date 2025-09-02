@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // bcrypt emas, bcryptjs ishlatgan yaxshi
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/User');
@@ -21,8 +21,8 @@ function authMiddleware(req, res, next) {
     const token = parts[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "supersecretkey");
+        req.user = decoded; // { id, username, role }
         next();
     } catch (err) {
         return res.status(401).json({ message: '❌ Noto‘g‘ri yoki eskirgan token' });
@@ -48,8 +48,7 @@ router.post('/register', async (req, res) => {
             lastname,
             username,
             password: hashedPassword,
-            role: role || "student"
-
+            role: "student"
         });
 
         await user.save();
@@ -80,8 +79,8 @@ router.post('/login', async (req, res) => {
         // JWT token yaratish
         const token = jwt.sign(
             { id: user._id, username: user.username, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES }
+            process.env.JWT_SECRET || "supersecretkey",
+            { expiresIn: process.env.JWT_EXPIRES || "1h" }
         );
 
         res.json({
@@ -100,7 +99,8 @@ router.post('/login', async (req, res) => {
 // =====================
 router.get('/tests/last', authMiddleware, async (req, res) => {
     try {
-        if (req.user.role !== 'student') return res.status(403).json({ message: '🚫 Ruxsat yo‘q!' });
+        if (req.user.role !== 'student')
+            return res.status(403).json({ message: '🚫 Ruxsat yo‘q!' });
 
         const test = await Test.findOne().sort({ createdAt: -1 });
         if (!test) return res.status(404).json({ message: '❌ Test topilmadi' });
@@ -117,7 +117,8 @@ router.get('/tests/last', authMiddleware, async (req, res) => {
 // =====================
 router.post('/tests/:id/submit', authMiddleware, async (req, res) => {
     try {
-        if (req.user.role !== 'student') return res.status(403).json({ message: '🚫 Ruxsat yo‘q!' });
+        if (req.user.role !== 'student')
+            return res.status(403).json({ message: '🚫 Ruxsat yo‘q!' });
 
         const { answers } = req.body;
         const test = await Test.findById(req.params.id);
@@ -148,13 +149,13 @@ router.get('/results', authMiddleware, async (req, res) => {
 
         const results = await Score.find({ student: req.user.id })
             .populate('test', 'testText createdAt')
-            .populate('student', 'username email'); // username va email uchun
+            .populate('student', 'username email');
 
         if (!results.length)
             return res.json({ message: "❌ Sizda hali natijalar yo‘q" });
 
         res.json(results.map(r => ({
-            student: r.student, // username va email
+            student: r.student,
             test: r.test ? r.test.testText : "Test topilmadi",
             date: r.test?.createdAt,
             score: r.score

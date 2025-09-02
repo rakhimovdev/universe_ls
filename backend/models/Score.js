@@ -8,13 +8,20 @@ const ScoreSchema = new mongoose.Schema({
     },
     test: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Test", // Testga ulanadi
+        ref: "Test",
         required: true
     },
     score: {
         type: Number,
         required: true
     },
+
+    // 📌 Snapshot ma'lumotlari
+    studentName: { type: String },
+    studentLastname: { type: String },
+    studentEmail: { type: String },
+    testName: { type: String },
+
     createdAt: {
         type: Date,
         default: Date.now

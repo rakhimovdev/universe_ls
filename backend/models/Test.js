@@ -1,9 +1,43 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const TestSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    score: { type: Number, required: true },
-    student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // ❗ bu bo‘lishi kerak
+const QuestionSchema = new mongoose.Schema({
+    value: {
+        type: String,
+        required: false, // bo‘sh qolishi ham mumkin
+    },
+    type: {
+        type: String,
+        enum: ["text", "select"], // faqat shu turlarni qabul qiladi
+        default: "text",
+    },
 });
 
-module.exports = mongoose.model('Test', TestSchema);
+const TestSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        testText: {
+            type: String,
+            required: true,
+        },
+        readingText: {
+            type: String,
+            default: "",
+        },
+        questions: {
+            type: [QuestionSchema],
+            default: [],
+        },
+        student: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User", // agar User modeliga bog‘lasangiz
+            required: false,
+        },
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model("Test", TestSchema);

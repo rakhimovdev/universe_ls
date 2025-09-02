@@ -16,6 +16,8 @@ import Teacher from './Pages/Teacher/Teacher';
 import TeachAcc from './Pages/Teacher_acc/TeachAcc';
 import Solving from './Pages/Solving/Solving';
 import Students from './Pages/Students/Students';
+import Listening from './Pages/Listening/Listening';
+import SelectT from './Pages/SelectTest/SelectT';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -36,7 +38,11 @@ root.render(
         <Route path='/teachacc' element={<TeachAcc />} />
         <Route path='/solving' element={<Solving />} />
         <Route path='/students' element={<Students />} />
+        <Route path='/selectt' element={<SelectT />} />
+        <Route path='/listening' element={<Listening />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );
+
+
