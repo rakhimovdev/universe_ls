@@ -7,11 +7,10 @@ function Listening() {
     const [currentAudio, setCurrentAudio] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    // 🔹 Form uchun
     const [title, setTitle] = useState("");
     const [file, setFile] = useState(null);
 
-    // 🔹 Backenddan audioslarni olish
+    // 🔹 Audiosni olish
     const fetchAudios = async () => {
         try {
             const res = await axios.get("/testl/all");
@@ -21,25 +20,53 @@ function Listening() {
         }
     };
 
-    useEffect(() => {
-        fetchAudios();
-    }, []);
+    // 🔹 Audio ijro qilish
+    // 🔹 Audio ijro qilish yoki pauza qilish
+    const handlePlay = async (id) => {
+        try {
+            const audioElement = document.getElementById("listening-audio");
 
-    const handlePlay = (audioUrl) => {
-        const audio = document.getElementById("listening-audio");
-        if (currentAudio !== audioUrl) {
-            setCurrentAudio(audioUrl);
-            setIsPlaying(true);
-            setTimeout(() => document.getElementById("listening-audio").play(), 100);
-        } else {
-            if (isPlaying) {
-                audio.pause();
-                setIsPlaying(false);
-            } else {
-                audio.play();
-                setIsPlaying(true);
+            // Agar shu audio bo‘lsa
+            if (currentAudio === id) {
+                if (isPlaying) {
+                    audioElement.pause();
+                    setIsPlaying(false);
+                } else {
+                    await audioElement.play();
+                    setIsPlaying(true);
+                }
+                return;
             }
+
+            // 🔹 Yangi audio tanlansa, backenddan olib kelamiz
+            const res = await axios.get(`/testl/${id}`, {
+                responseType: "blob",
+            });
+            const url = URL.createObjectURL(res.data);
+
+            audioElement.src = url;
+            await audioElement.play();
+
+            setCurrentAudio(id);
+            setIsPlaying(true);
+
+            audioElement.onended = () => {
+                setIsPlaying(false);
+                setCurrentAudio(null);
+            };
+        } catch (err) {
+            console.error("Audio ijro etishda xato:", err);
         }
+    };
+
+
+    // 🔹 To‘xtatish
+    const handleStop = () => {
+        const audioElement = document.getElementById("listening-audio");
+        audioElement.pause();
+        audioElement.currentTime = 0; // boshiga qaytarish
+        setIsPlaying(false);
+        setCurrentAudio(null);
     };
 
     // 🔹 Audio qo‘shish
@@ -60,7 +87,7 @@ function Listening() {
             });
             setTitle("");
             setFile(null);
-            fetchAudios(); // yangilab qo‘yish
+            fetchAudios();
             alert("✅ Audio qo‘shildi!");
         } catch (err) {
             console.error("Audio qo‘shishda xatolik:", err);
@@ -98,10 +125,10 @@ function Listening() {
                             <span>{audio.title}</span>
                             <button
                                 className="play-btn"
-                                onClick={() => handlePlay(audio.audioUrl)}
+                                onClick={() => handlePlay(audio._id)}
                             >
-                                {currentAudio === audio.audioUrl && isPlaying
-                                    ? "⏸ Pauza"
+                                {currentAudio === audio._id && isPlaying
+                                    ? "⏹ Stop"
                                     : "▶️ Play"}
                             </button>
                         </li>
@@ -109,8 +136,8 @@ function Listening() {
                 </ul>
             )}
 
-            {/* Bitta audio player */}
-            <audio id="listening-audio" src={currentAudio || ""} />
+            {/* Bitta umumiy audio player */}
+            <audio id="listening-audio" controls hidden />
         </div>
     );
 }

@@ -10,7 +10,7 @@ function Sign_up() {
         lastname: '',
         email: '',
         password: '',
-        role: 'student' // 🔥 default student
+        role: 'student' // 🔥 student sifatida default
     });
 
     const [loading, setLoading] = useState(false);
@@ -33,12 +33,14 @@ function Sign_up() {
             const response = await axios.post('/student/register', userData);
 
             if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
-                localStorage.setItem("user", JSON.stringify(response.data.user)); // 🔥 userni ham saqlaymiz
+                localStorage.setItem("token", response.data.token); // ✅
+                localStorage.setItem("role", "student");
+                localStorage.setItem("user", JSON.stringify(response.data.user));
             }
 
-            alert("Registration successful! 🎉");
-            navigate("/account");
+
+            alert("Student registration successful! 🎉");
+            navigate("/account"); // student account sahifaga
         } catch (error) {
             console.error('Registration error:', error);
             setErrorMsg(error.response?.data?.message || "Registration failed ❌");

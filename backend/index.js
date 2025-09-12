@@ -28,6 +28,7 @@ app.use("/test", Test);
 app.use("/score", Score);
 app.use("/testl", Testl);
 
+
 const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`Server Port ${PORT}da ishlamoqda`);

@@ -42,7 +42,7 @@ function ReadingForm() {
                 }
                 setTest(res.data);
                 const answerCount =
-                    res.data.testText.match(/\[\[(input|select)\]\]/g) || [];
+                    res.data.testText.match(/\[\[(input|select(?::yn)?)\]\]/g) || [];
                 setUserAnswers(Array(answerCount.length).fill(""));
             })
             .catch(() => {
@@ -75,31 +75,43 @@ function ReadingForm() {
         setUserAnswers(updated);
     };
 
+    const normalizeAnswer = (ans) => {
+        ans = ans.trim().toLowerCase();
+        if (ans === "yes") return "true";   // yes → true
+        if (ans === "no") return "false";   // no → false
+        return ans;
+    };
+
     const handleSubmit = async () => {
         if (!test?.questions) return;
         const check = userAnswers.map((ans, idx) => {
-            const correct = test.questions[idx]?.value?.trim().toLowerCase() || "";
-            return ans.trim().toLowerCase() === correct;
+            const correct = normalizeAnswer(
+                test.questions[idx]?.value?.trim().toLowerCase() || ""
+            );
+            return normalizeAnswer(ans) === correct;
         });
         setResults(check);
         const score = check.filter((r) => r).length;
+        console.log(localStorage.getItem("token"))
 
         try {
-            const token = localStorage.getItem("token");
             await axios.post(
                 "/score/add",
                 { testId: test._id, score },
                 {
+
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅ Bearer qo‘shildi
+
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
                 }
             );
-
             console.log("Score saqlandi ✅");
+            console.log(localStorage.getItem("token"))
         } catch (err) {
             console.error("Score saqlashda xato:", err.response?.data || err);
         }
+
     };
 
     // Highlight funksiyasi
@@ -156,7 +168,7 @@ function ReadingForm() {
     if (!test) return <p>Loading test...</p>;
 
     // testText dan input/select joylarini ajratib olish
-    const regex = /\[\[(input|select)\]\]/g;
+    const regex = /\[\[(input|select(?::yn)?)\]\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -164,7 +176,7 @@ function ReadingForm() {
 
     while ((match = regex.exec(test.testText)) !== null) {
         parts.push(test.testText.substring(lastIndex, match.index));
-        inputTypes.push(match[1]);
+        inputTypes.push(match[1]); // input, select, select:yn
         lastIndex = regex.lastIndex;
     }
     parts.push(test.testText.substring(lastIndex));
@@ -219,6 +231,17 @@ function ReadingForm() {
                                         onChange={(e) => handleChange(e.target.value, i)}
                                         disabled={!!results}
                                     />
+                                ) : inputTypes[i] === "select:yn" ? (
+                                    <select
+                                        value={userAnswers[i] || ""}
+                                        onChange={(e) => handleChange(e.target.value, i)}
+                                        disabled={!!results}
+                                    >
+                                        <option value="">-- Tanlang --</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                        <option value="not given">Not Given</option>
+                                    </select>
                                 ) : (
                                     <select
                                         value={userAnswers[i] || ""}
